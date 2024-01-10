@@ -1,3 +1,4 @@
+import { author } from "../models/author.model.js";
 import post from "../models/post.model.js";
 
 class PostController {
@@ -24,14 +25,27 @@ class PostController {
   }
 
   static async udpatePost(req, res) {
+    const postId = req.params.id;
     try {
-      const updatedPost = await post.findByIdAndUpdate(req.params.id);
+      const updatedPost = await post.findByIdAndUpdate(postId, req.body);
       if (!updatedPost) {
         return res.status(404).json("Post not identified!");
       }
       res.status(404).json({ message: "Post updated with sucess!", updatedPost: updatedPost });
     } catch (error) {
       res.status(500).json("Ocurred on error -", error);
+    }
+  }
+
+  static async createPost(req, res) {
+    const newAuthor = req.body;
+    try {
+      const identifiedAuthor = await author.findById(newAuthor.author);
+      const postWithAuthor = { ...newAuthor, author: { ...identifiedAuthor._doc } };
+      const createdPost = await post.create(postWithAuthor);
+      res.status(200).json({ message: "Post created with sucess!", createdPost: createdPost });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error!", error });
     }
   }
 
@@ -47,14 +61,6 @@ class PostController {
     }
   }
 
-  static async createPost(req, res) {
-    try {
-      const createdPost = await post.create(req.body);
-      res.status(200).json({ message: "Post created with sucess!", createdPost: createdPost });
-    } catch (error) {
-      res.status(500).json("Internal server error!");
-    }
-  }
 }
 
 export default PostController;

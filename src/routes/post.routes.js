@@ -6,7 +6,7 @@ const routes = express.Router();
 routes.get("/posts", PostController.listPosts);
 routes.get("/post/:id", PostController.searchPostById);
 routes.put("/post/:id", PostController.udpatePost);
-routes.delete("/post/:id", PostController.deletePost);
 routes.post("/post", PostController.createPost);
+routes.delete("/post/:id", PostController.deletePost);
 
 export default routes;
