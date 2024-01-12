@@ -1,43 +1,43 @@
 import { author } from "../models/author.model.js";
 import post from "../models/post.model.js";
-
+import NotIdentified from "../errors/notIdentified.error.js";
 class PostController {
 
-  static async listPosts(req, res) {
+  static async listPosts(req, res, next) {
     try {
       const posts = await post.find();
       res.status(200).json(posts);
     } catch (error) {
-      res.status(500).json("Ocurred on error -", error);
+      next(error);
     }
   }
 
-  static async searchPostById(req, res) {
+  static async searchPostById(req, res, next) {
     try {
       const identifiedPost = await post.findById(req.params.id);
-      if (!identifiedPost) {
-        return res.status(404).json({ message: "Post not identified!" });
+      if (identifiedPost) {
+        return res.status(200).json(identifiedPost);
       }
-      res.status(200).json(identifiedPost);
+      next(new NotIdentified("Post not Identified!"));
     } catch (error) {
-      res.status(500).json("Ocurred on error -", error);
+      next(error);
     }
   }
 
-  static async udpatePost(req, res) {
+  static async udpatePost(req, res, next) {
     const postId = req.params.id;
     try {
       const updatedPost = await post.findByIdAndUpdate(postId, req.body);
-      if (!updatedPost) {
-        return res.status(404).json("Post not identified!");
+      if (updatedPost) {
+        return res.status(404).json({ message: "Post updated with sucess!", updatedPost: updatedPost });
       }
-      res.status(404).json({ message: "Post updated with sucess!", updatedPost: updatedPost });
+      next(new NotIdentified("Post not Identified!"));
     } catch (error) {
-      res.status(500).json("Ocurred on error -", error);
+      next(error);
     }
   }
 
-  static async createPost(req, res) {
+  static async createPost(req, res, next) {
     const newAuthor = req.body;
     try {
       const identifiedAuthor = await author.findById(newAuthor.author);
@@ -45,19 +45,19 @@ class PostController {
       const createdPost = await post.create(postWithAuthor);
       res.status(200).json({ message: "Post created with sucess!", createdPost: createdPost });
     } catch (error) {
-      res.status(500).json({ message: "Internal server error!", error });
+      next(error);
     }
   }
 
-  static async deletePost(req, res) {
+  static async deletePost(req, res, next) {
     try {
       const deletedPost = await post.findByIdAndDelete(req.params.id);
-      if (!deletedPost) {
-        return res.status(404).json("Post not identified!");
+      if (deletedPost !== null) {
+        return res.status(200).json("Post Deleted With Sucess!");
       }
-      res.status(200).json("Post Deleted With Sucess!");
+      next(new NotIdentified("Post not Identified!"));
     } catch (error) {
-      res.status(500).json("Ocurred on error -", error);
+      next(error);
     }
   }
 
